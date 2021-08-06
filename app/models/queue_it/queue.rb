@@ -10,5 +10,9 @@ module QueueIt
     def tail_node
       nodes.find_by(kind: :tail)
     end
+
+    def length
+      nodes.length
+    end
   end
 end

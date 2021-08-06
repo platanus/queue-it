@@ -1,5 +1,7 @@
 require 'simplecov'
 require 'coveralls'
+require 'faker'
+require "shoulda/matchers"
 
 formatters = [SimpleCov::Formatter::HTMLFormatter, Coveralls::SimpleCov::Formatter]
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter::new(formatters)
@@ -27,6 +29,13 @@ require "rspec/rails"
 require "factory_bot_rails"
 
 Dir[::QueueIt::Engine.root.join("spec/support/**/*.rb")].sort.each { |f| require f }
+
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :rails
+  end
+end
 
 RSpec.configure do |config|
   config.fixture_path = "#{::QueueIt::Engine.root}/spec/assets"

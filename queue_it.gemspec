@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "bundler", "~> 2.2.15"
   s.add_development_dependency "coveralls"
   s.add_development_dependency "factory_bot_rails"
+  s.add_development_dependency "faker"
   s.add_development_dependency "guard-rspec"
   s.add_development_dependency "pry"
   s.add_development_dependency "pry-rails"
@@ -30,5 +31,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rspec-rails"
   s.add_development_dependency "rubocop", "~> 1.9"
   s.add_development_dependency "rubocop-rails"
+  s.add_development_dependency "shoulda-matchers"
   s.add_development_dependency "sqlite3"
 end

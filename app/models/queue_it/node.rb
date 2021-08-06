@@ -14,16 +14,17 @@ module QueueIt
     validate :only_one_head, :only_one_tail
 
     def only_one_head
-      # binding.pry
-      if changes['kind'].present? && changes['kind'].first == 'any' &&
-          changes['kind'].last == 'head' && queue.nodes.where(kind: :head).positive?
+      if changes['kind'].present? && (changes['kind'].first == 'any' ||
+          changes['kind'].first.nil?) && changes['kind'].last == 'head' &&
+          queue.nodes.find_by(kind: :head).present?
         errors.add(:kind, 'There can not be more than 1 head node in each queue')
       end
     end
 
     def only_one_tail
-      if changes['kind'].present? && changes['kind'].first == 'any' &&
-          changes['kind'].last == 'tail' && queue.nodes.where(kind: :head).positive?
+      if changes['kind'].present? && (changes['kind'].first == 'any' ||
+          changes['kind'].first == nil) && changes['kind'].last == 'tail' &&
+          queue.nodes.find_by(kind: :tail).present?
         errors.add(:kind, 'There can not be more than 1 tail node in each queue')
       end
     end

@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :queue do
-    
+  factory :queue, class: 'QueueIt::Queue' do
+    queable { create(:task) }
   end
 end

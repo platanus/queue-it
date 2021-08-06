@@ -1,3 +1,3 @@
 class Task < ApplicationRecord
-  include QueueIt::Concerns::Queable
+  include QueueIt::Queable
 end

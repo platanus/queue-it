@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir["spec/**/*"]
 
   s.add_dependency "rails", ">= 6.0"
+  s.add_development_dependency "annotate", "~> 3.0"
   s.add_development_dependency "bundler", "~> 2.2.15"
   s.add_development_dependency "coveralls"
   s.add_development_dependency "factory_bot_rails"

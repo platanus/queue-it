@@ -151,7 +151,7 @@ describe 'Concerns::Queable' do
     describe 'when queue is empty' do
       before { task.find_or_create_queue! }
 
-      it { expect { task.empty_queue }.not_to change { task.queue.length } }
+      it { expect { task.empty_queue }.not_to change { task.queue.size } }
     end
 
     describe 'when queue is with nodes' do
@@ -163,7 +163,7 @@ describe 'Concerns::Queable' do
         end
       end
 
-      it { expect { task.empty_queue }.to change { task.queue.length }.from(5).to(0) }
+      it { expect { task.empty_queue }.to change { task.queue.size }.from(5).to(0) }
     end
   end
 end

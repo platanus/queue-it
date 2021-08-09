@@ -11,15 +11,19 @@ module QueueIt::Queable
 
     def push_to_queue(nodable, in_head = true)
       if local_queue.empty?
-        local_queue.nodes.create!(nodable: nodable, kind: :head, queue: local_queue)
+        local_queue.push_node_when_queue_length_is_zero(nodable)
       elsif local_queue.one_node?
-        local_queue.push_node_when_queue_lenght_is_one(nodable, in_head)
+        local_queue.push_node_when_queue_length_is_one(nodable, in_head)
       else
         in_head ? local_queue.push_in_head(nodable) : local_queue.push_in_tail(nodable)
       end
     end
 
     def get_next_in_queue
+      get_next_node_in_queue&.nodable
+    end
+
+    def get_next_node_in_queue
       return if local_queue.empty?
 
       if local_queue.one_node?
@@ -31,32 +35,32 @@ module QueueIt::Queable
       end
     end
 
-    def formatted_queue(node_attribute)
+    def formatted_queue(nodable_attribute)
       return if local_queue.empty?
 
       if local_queue.one_node?
-        [local_queue.head_node.nodable.send(node_attribute)]
+        [local_queue.head_node.nodable.send(nodable_attribute)]
       elsif local_queue.two_nodes?
-        [local_queue.head_node.nodable.send(node_attribute) +
-          local_queue.tail_node.nodable.send(node_attribute)]
+        [local_queue.head_node.nodable.send(nodable_attribute),
+          local_queue.tail_node.nodable.send(nodable_attribute)]
       else
         current_node = local_queue.head_node
         array = []
         while !current_node.nil?
-          array.push(current_node.nodable.send(node_attribute))
+          array.push(current_node.nodable.send(nodable_attribute))
           current_node = current_node.child_node
         end
         array
       end
     end
 
-    def empty_queue
+    def delete_queue_nodes
       queue.nodes.delete_all
     end
 
     def delete_node(position)
       raise Error('The queue is empty') if queue.nodes.zero?
-      raise Error('position out of lenght or invalid') if position > queue.nodes.lenght - 1
+      raise Error('position out of length or invalid') if position > queue.nodes.length - 1
       # SIEMPRE TENEMOS 3 CASOS A NIVEL DE LISTA Y NIVEL DE POSICIONES:
       # A NIVEL DE LISTAS: LA LISTA TIENEN 1, 2 O MÁS NODOS
       # A NIVEL POSICIÓN ES LA CABEZA, LA COLA O CUALQUIER OTRO

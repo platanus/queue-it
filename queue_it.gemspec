@@ -5,7 +5,7 @@ require "queue_it/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name          = "queue_it"
+  s.name          = "queue-it"
   s.version       = QueueIt::VERSION
   s.authors       = ["Platanus", "Gabriel Lyon"]
   s.email         = ["rubygems@platan.us", "gabriel@platan.us"]

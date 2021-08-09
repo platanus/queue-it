@@ -29,8 +29,9 @@ module QueueIt
 
     def get_next_in_queue_with_length_two
       next_node = ActiveRecord::Base.transaction do
-        old_head_node = head_node
-        old_tail_node = tail_node
+        lock!
+        old_head_node = head_node.lock!
+        old_tail_node = tail_node.lock!
         nodes.where.not(kind: :any).each { |node| node.update!(kind: :any) }
         old_head_node.update!(kind: :tail, parent_node: old_tail_node)
         old_tail_node.update!(kind: :head, parent_node: nil)
@@ -41,9 +42,10 @@ module QueueIt
 
     def get_next_in_queue_generic
       next_node = ActiveRecord::Base.transaction do
-        old_head_node = head_node
-        old_second_node = old_head_node.child_node
-        old_tail_node = tail_node
+        lock!
+        old_head_node = head_node.lock!
+        old_second_node = old_head_node.child_node.lock!
+        old_tail_node = tail_node.lock!
         nodes.where.not(kind: :any).find_each { |node| node.update!(kind: :any) }
         old_head_node.update!(kind: :tail, parent_node: old_tail_node)
         old_second_node.update!(kind: :head, parent_node: nil)
@@ -52,17 +54,28 @@ module QueueIt
       next_node
     end
 
-    def push_node_when_queue_lenght_is_one(nodable, in_head)
+    def push_node_when_queue_length_is_zero(nodable)
+      ActiveRecord::Base.transaction do
+        lock!
+        nodes.create!(nodable: nodable, kind: :head)
+      end
+    end
+
+    def push_node_when_queue_length_is_one(nodable, in_head)
       if in_head
         push_in_head(nodable)
       else
-        nodes.create!(nodable: nodable, kind: :tail, parent_node: head_node)
+        ActiveRecord::Base.transaction do
+          lock!
+          nodes.create!(nodable: nodable, kind: :tail, parent_node: head_node)
+        end
       end
     end
 
     def push_in_head(nodable)
       ActiveRecord::Base.transaction do
-        old_head_node = head_node
+        lock!
+        old_head_node = head_node.lock!
         kind = one_node? ? :tail : :any
         old_head_node.update!(kind: kind)
         new_head_node = nodes.create!(nodable: nodable, kind: :head)
@@ -72,7 +85,8 @@ module QueueIt
 
     def push_in_tail(nodable)
       ActiveRecord::Base.transaction do
-        old_tail_node = tail_node
+        lock!
+        old_tail_node = tail_node.lock!
         old_tail_node.update!(kind: :any)
         new_tail_node = nodes.create!(nodable: nodable, kind: :tail)
         old_tail_node.update!(parent_node: new_tail_node)

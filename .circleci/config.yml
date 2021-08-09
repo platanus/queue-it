@@ -18,6 +18,16 @@ executors:
     docker:
       - image: circleci/ruby:<<parameters.ruby-version>>-node
         environment: *env-vars
+  test-executor:
+    parameters:
+      ruby-version:
+        description: "Ruby version"
+        default: "2.7"
+        type: string
+    docker:
+      - image: circleci/ruby:<<parameters.ruby-version>>-node
+        environment: *env-vars
+      - image: circleci/postgres:9.6-alpine
 
 commands:
   setup:
@@ -58,10 +68,13 @@ jobs:
         default: "2.7"
         type: string
     executor:
-      name: main-executor
+      name: test-executor
       ruby-version: <<parameters.ruby-version>>
     steps:
       - setup
+      - run:
+          name: Database Creation
+          command: bin/rails db:create && bin/rails db:migrate
       - run:
           name: Run Tests
           command: |
@@ -93,7 +106,7 @@ workflows:
       - test:
           matrix:
             parameters:
-              ruby-version: ["2.5", "2.6", "2.7"]
+              ruby-version: ["2.6", "2.7"]
       - deploy:
           context: org-global
           filters:

@@ -59,13 +59,23 @@ module QueueIt
       end
     end
 
-    describe '#push_node_when_queue_lenght_is_one' do
+    describe '#push_node_when_queue_length_is_zero' do
+      let(:queue) { create(:queue) }
+      let(:nodable) { create(:user) }
+
+      it 'expects nodable to be in head node' do
+        queue.push_node_when_queue_length_is_zero(nodable)
+        expect(queue.head_node.nodable).to eq(nodable)
+      end
+    end
+
+    describe '#push_node_when_queue_length_is_one' do
       let(:queue) { create(:queue, :with_one_node) }
       let(:nodable) { create(:user) }
       let(:in_head) { true }
 
       it 'expects nodable to be in head node' do
-        queue.push_node_when_queue_lenght_is_one(nodable, in_head)
+        queue.push_node_when_queue_length_is_one(nodable, in_head)
         expect(queue.head_node.nodable).to eq(nodable)
       end
 
@@ -73,7 +83,7 @@ module QueueIt
         let(:in_head) { false }
 
         it 'expects nodable to be in tail node' do
-          queue.push_node_when_queue_lenght_is_one(nodable, in_head)
+          queue.push_node_when_queue_length_is_one(nodable, in_head)
           expect(queue.tail_node.nodable).to eq(nodable)
         end
       end

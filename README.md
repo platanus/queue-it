@@ -1,7 +1,7 @@
 # Queue It
 
-[![Gem Version](https://badge.fury.io/rb/queue_it.svg)](https://badge.fury.io/rb/queue-it)
-[![CircleCI](https://circleci.com/gh/platanus/queue_it.svg?style=shield)](https://app.circleci.com/pipelines/github/platanus/queue_it)
+[![Gem Version](https://badge.fury.io/rb/queue-it.svg)](https://badge.fury.io/rb/queue-it)
+[![CircleCI](https://circleci.com/gh/platanus/queue-it.svg?style=shield)](https://app.circleci.com/pipelines/github/platanus/queue-it)
 
 This gem has been develope to manage recurrent processes that need someone (or something) responsable.
 For example, imagine you have a recurrent task for a certain group of people like responding the chat of
@@ -33,7 +33,7 @@ For the purpose of this explanation we'll use the models `Task` and `User` to ex
 This gem implements the models `QueueIt::Queue` and `QueueIt::Node`, each queue has polymorphic relation with a queable object (i.e. a `Task` instace) and each node has a polymorphic relation with a nodable object (i.e. the object queued).
 
 ### Before Starting
-This gem uses [`ActiveRecord::Locking::Pessimistic `](https://api.rubyonrails.org/classes/ActiveRecord/Locking/Pessimistic.html) so the behaviour with sqlite is not the same as with Postgres or MySql. Make sure you use of the latters.
+This gem uses [`ActiveRecord::Locking::Pessimistic `](https://api.rubyonrails.org/classes/ActiveRecord/Locking/Pessimistic.html) so the behaviour with sqlite is not the same as with Postgres or MySql. Make sure you use one of the latters.
 ### Queable concern
 Add the `QueueIt::Queable` concern to the model you want to have queue's. In this case we'll ilustrate this with the task model:
 ```ruby
@@ -63,6 +63,8 @@ head_node = true
 task.push_to_queue(nodable, head_node)
 ```
 Note that the second value (`head_node`) is optional with a default `true` value.
+
+> It's not necessary to create the queue manually. The `push_to_queue` method will execute `find_or_create_queue!` before adding the node.
 
 #### Get next nodable/node of the queue
 To obtain the next nodable/node of the queue we've implemented the methods `get_next_in_queue` and `get_next_node_in_queue`. The first one calls the second one but instead of returning the node returns the nodable object.

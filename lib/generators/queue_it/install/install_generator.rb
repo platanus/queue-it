@@ -14,6 +14,6 @@ class QueueIt::InstallGenerator < Rails::Generators::Base
   end
 
   def copy_engine_migrations
-    rake "railties:install:migrations"
+    rake "queue_it:install:migrations"
   end
 end

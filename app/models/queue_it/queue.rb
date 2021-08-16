@@ -88,8 +88,7 @@ module QueueIt
         lock!
         old_tail_node = tail_node.lock!
         old_tail_node.update!(kind: :any)
-        new_tail_node = nodes.create!(nodable: nodable, kind: :tail)
-        old_tail_node.update!(parent_node: new_tail_node)
+        nodes.create!(nodable: nodable, kind: :tail, parent_node: old_tail_node)
       end
     end
   end

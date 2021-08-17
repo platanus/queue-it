@@ -94,8 +94,10 @@ module QueueIt
       let(:nodable) { create(:user) }
 
       it 'expects nodable to be in head node' do
+        old_head_node = queue.head_node
         queue.push_in_head(nodable)
         expect(queue.head_node.nodable).to eq(nodable)
+        expect(old_head_node.reload.parent_node).to eq(queue.head_node)
       end
     end
 
@@ -104,8 +106,10 @@ module QueueIt
       let(:nodable) { create(:user) }
 
       it 'expects nodable to be in tail node' do
+        old_tail_node = queue.tail_node
         queue.push_in_tail(nodable)
         expect(queue.tail_node.nodable).to eq(nodable)
+        expect(queue.tail_node.parent_node).to eq(old_tail_node)
       end
     end
   end

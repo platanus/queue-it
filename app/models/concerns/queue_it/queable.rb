@@ -58,18 +58,31 @@ module QueueIt::Queable
       queue.nodes.delete_all
     end
 
-    def delete_node(position)
-      raise Error('The queue is empty') if queue.nodes.zero?
-      raise Error('position out of length or invalid') if position > queue.nodes.length - 1
-      # SIEMPRE TENEMOS 3 CASOS A NIVEL DE LISTA Y NIVEL DE POSICIONES:
-      # A NIVEL DE LISTAS: LA LISTA TIENEN 1, 2 O MÁS NODOS
-      # A NIVEL POSICIÓN ES LA CABEZA, LA COLA O CUALQUIER OTRO
+    def remove_from_queue(nodable)
+      return if local_queue.empty? || local_queue.nodes.where(nodable: nodable).empty?
+
+      ActiveRecord::Base.transaction do
+        local_queue.lock!
+        local_queue.nodes.where(nodable: nodable).find_each do |node|
+          remove_node(node)
+        end
+      end
     end
 
     private
 
     def local_queue
       @local_queue ||= find_or_create_queue!
+    end
+
+    def remove_node(node)
+      node.reload
+      previous_node = node.parent_node
+      child_node = node.child_node
+      kind = child_node&.tail? && !node.head? ? child_node.kind : node.kind
+      node.destroy
+      child_node&.update!(parent_node: previous_node, kind: kind)
+      previous_node&.update!(kind: kind) if kind == 'tail' && previous_node&.any?
     end
   end
 end

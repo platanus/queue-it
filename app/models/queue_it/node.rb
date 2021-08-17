@@ -33,6 +33,10 @@ module QueueIt
       kind == 'tail'
     end
 
+    def any?
+      kind == 'any'
+    end
+
     private
 
     def repeated_kind?(kind)

@@ -95,7 +95,7 @@ jobs:
           command: |
             gem build queue_it.gemspec
             version_tag=$(git describe --tags)
-            gem push queue-it-${version_tag#v}.gem
+            gem push rails-queue-it-${version_tag#v}.gem
 
 workflows:
   version: 2

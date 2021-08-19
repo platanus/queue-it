@@ -79,10 +79,11 @@ module QueueIt::Queable
       node.reload
       previous_node = node.parent_node
       child_node = node.child_node
-      kind = child_node&.tail? && !node.head? ? child_node.kind : node.kind
+      node_kind = node.kind
       node.destroy
-      child_node&.update!(parent_node: previous_node, kind: kind)
-      previous_node&.update!(kind: kind) if kind == 'tail' && previous_node&.any?
+      new_child_node_kind = node_kind == 'head' ? node_kind : child_node&.kind
+      child_node&.update!(parent_node: previous_node, kind: new_child_node_kind)
+      previous_node&.update!(kind: node_kind) if node_kind == 'tail' && previous_node&.any?
     end
   end
 end

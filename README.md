@@ -35,7 +35,7 @@ This gem implements the models `QueueIt::Queue` and `QueueIt::Node`, each queue 
 ### Before Starting
 This gem uses [`ActiveRecord::Locking::Pessimistic `](https://api.rubyonrails.org/classes/ActiveRecord/Locking/Pessimistic.html) so the behaviour with sqlite is not the same as with Postgres or MySql. Make sure you use one of the latters.
 ### Queable concern
-Add the `QueueIt::Queable` concern to the model you want to have queue's. In this case we'll ilustrate this with the task model:
+Add the `QueueIt::Queable` concern to the model you want to have a queue. In this case we'll ilustrate this with the task model:
 ```ruby
 class Task < ApplicationRecord
   include QueueIt::Queable
@@ -82,7 +82,7 @@ nodable = task.get_next_in_queue
 nodable.name == 'Raimundo' # true
 # the new order of the queue will be: [Leandro's node, Gabriel's node, Raimundo's node]
 ```
-Now if we would of used `get_next_node_in_queue` instead of `get_next_in_queue` method we would of obtained the node containing the user with name `'Raimundo'` as nodable and aswell the order of the queue would have been updated.
+Now if we would of used `get_next_node_in_queue` instead of `get_next_in_queue` method we would of obtained the node containing the user with name `'Raimundo'` as nodable and the order of the queue would have been updated like before.
 ```ruby
 node = task.get_next_in_queue
 node.nodable.name == 'Raimundo' # true
@@ -102,7 +102,7 @@ response = task.formatted_queue('name')
 response == ['Raimundo', 'Leandro', 'Gabriel'] # true
 ```
 
-#### Delete nodes of the queue
+#### Delete all the nodes of the queue
 With the method `delete_queue_nodes` you'll be able to clean the queue.
 ```ruby
 task = Task.create!(name: 'Example')
@@ -112,6 +112,23 @@ task.push_to_queue(User.create!(name: 'Raimundo'))
 # delete de queue nodes
 task.delete_queue_nodes
 task.queue.size? == 0 # true
+```
+
+#### Remove a nodable object
+In case you need to remove all the nodes of a queue containing an specific nodable you can use the `remove_from_queue(nodable)` method.
+```ruby
+task = Task.create!(name: 'Example')
+gabriel = User.create!(name: 'Gabriel')
+leandro = User.create!(name: 'Leandro')
+raimundo = User.create!(name: 'Raimundo')
+task.push_to_queue(gabriel)
+task.push_to_queue(leandro)
+task.push_to_queue(raimundo)
+task.push_to_queue(leandro)
+# Now we have a queue that look's like this:
+# [Leandro's node, Raimundo's node, Leandro's node, Gabriel's node]
+task.remove_from_queue(leandro)
+# The queue will now look like this: [Raimundo's node, Gabriel's node]
 ```
 
 ## Development

@@ -246,7 +246,7 @@ describe 'Concerns::Queable' do
       end
     end
 
-    context 'when queue has two different nodes' do
+    context 'when queue has two different nodables' do
       let(:first_nodable) { create(:user) }
       let(:second_nodable) { create(:user) }
       let(:in_head) { true }
@@ -403,6 +403,89 @@ describe 'Concerns::Queable' do
 
       it "expects to delete first and second node when first_nodable is deleted" do
         expect { task.remove_from_queue(nodable) }.to change { task.queue.size }.from(3).to(0)
+      end
+    end
+
+    context 'when queue has lenght 5', focus: true do
+      let(:first_nodable) { create(:user) }
+      let(:second_nodable) { create(:user) }
+      let(:third_nodable) { create(:user) }
+      let(:fourth_nodable) { create(:user) }
+      let(:fifth_nodable) { create(:user) }
+      let(:in_head) { true }
+
+      before do
+        task.push_to_queue(first_nodable)
+        task.push_to_queue(second_nodable, in_head)
+        task.push_to_queue(third_nodable, in_head)
+        task.push_to_queue(fourth_nodable, in_head)
+        task.push_to_queue(fifth_nodable, in_head)
+      end
+
+      RSpec.shared_examples "properly_removed" do
+        it "expects not to raise an error and to properly delete de nodable's node" do
+          expect { task.remove_from_queue(nodable_to_remove) }.to change {
+            task.queue.size
+          }.from(5).to(4)
+        end
+      end
+
+      context 'when removing the the head_node of the queue (fifth_nodable)' do
+        let(:nodable_to_remove) { fifth_nodable }
+
+        include_examples 'properly_removed'
+
+        it "expects head_node to have third_nodable as child_node" do
+          task.remove_from_queue(fifth_nodable)
+          expect(task.queue.head_node.nodable).to eq(fourth_nodable)
+          expect(task.queue.head_node.child_node.nodable).to eq(third_nodable)
+        end
+      end
+
+      context 'when removing the second nodable of the queue (fourth_nodable)' do
+        let(:nodable_to_remove) { fourth_nodable }
+
+        include_examples 'properly_removed'
+
+        it "expects head_node to have third_nodable as child_node" do
+          task.remove_from_queue(fourth_nodable)
+          expect(task.queue.head_node.child_node.nodable).to eq(third_nodable)
+        end
+      end
+
+      context 'when removing the third nodable of the queue (third_nodable)' do
+        let(:nodable_to_remove) { third_nodable }
+
+        include_examples 'properly_removed'
+
+        it "expects fourth_nodable to have second_nodable as child_node" do
+          task.remove_from_queue(third_nodable)
+          expect(task.queue.head_node.child_node.nodable).to eq(fourth_nodable)
+          expect(task.queue.head_node.child_node.child_node.nodable).to eq(second_nodable)
+        end
+      end
+
+      context 'when removing the penultimaten (second_nodable)' do
+        let(:nodable_to_remove) { second_nodable }
+
+        include_examples 'properly_removed'
+
+        it "expects tail_node to have third_nodable as parent_node" do
+          task.remove_from_queue(second_nodable)
+          expect(task.queue.tail_node.parent_node.nodable).to eq(third_nodable)
+        end
+      end
+
+      context 'when removing the tail_node (first_nodable)' do
+        let(:nodable_to_remove) { first_nodable }
+
+        include_examples 'properly_removed'
+
+        it "expects tail_node to have third_nodable as parent_node" do
+          task.remove_from_queue(first_nodable)
+          expect(task.queue.tail_node.nodable).to eq(second_nodable)
+          expect(task.queue.tail_node.parent_node.nodable).to eq(third_nodable)
+        end
       end
     end
   end

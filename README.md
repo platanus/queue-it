@@ -13,7 +13,7 @@ This gem installs an engine in your rails app.
 Add to your Gemfile:
 
 ```ruby
-gem "queue-it"
+gem "rails-queue-it"
 ```
 
 ```bash

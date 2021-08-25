@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.version       = QueueIt::VERSION
   s.authors       = ["Platanus", "Gabriel Lyon"]
   s.email         = ["rubygems@platan.us", "gabriel@platan.us"]
-  s.homepage      = "https://github.com/platanus/queue_it/master"
+  s.homepage      = "https://github.com/platanus/queue-it"
   s.summary       = ""
   s.description   = ""
   s.license       = "MIT"

@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.authors       = ["Platanus", "Gabriel Lyon"]
   s.email         = ["rubygems@platan.us", "gabriel@platan.us"]
   s.homepage      = "https://github.com/platanus/queue-it"
-  s.summary       = ""
-  s.description   = ""
+  s.summary       = "Queue's for recurrent processes that need someone (or something) responsable."
+  s.description   = "This gem allows you to queue objects through a simple to use interface."
   s.license       = "MIT"
 
   s.files = `git ls-files`.split($/).reject { |fn| fn.start_with? "spec" }

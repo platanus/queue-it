@@ -1,6 +1,6 @@
 # Queue It
 
-[![Gem Version](https://badge.fury.io/rb/queue-it.svg)](https://badge.fury.io/rb/queue-it)
+[![Gem Version](https://badge.fury.io/rb/rails-queue-it.svg)](https://badge.fury.io/rb/queue-it)
 [![CircleCI](https://circleci.com/gh/platanus/queue-it.svg?style=shield)](https://app.circleci.com/pipelines/github/platanus/queue-it)
 
 This gem has been develope to manage recurrent processes that need someone (or something) responsable.

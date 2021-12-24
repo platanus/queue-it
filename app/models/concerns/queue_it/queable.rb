@@ -19,6 +19,23 @@ module QueueIt::Queable
       end
     end
 
+    def get_next_in_queue_by(nodable_attribute, attribute_value)
+      get_next_node_in_queue_by(nodable_attribute, attribute_value)&.nodable
+    end
+
+    def get_next_node_in_queue_by(nodable_attribute, attribute_value)
+      return if local_queue.empty?
+
+      if local_queue.one_node? &&
+          local_queue.head_node.nodable.send(nodable_attribute) == attribute_value
+        return local_queue.head_node
+      elsif local_queue.two_nodes?
+        return local_queue.get_next_by_with_queue_length_two(nodable_attribute, attribute_value)
+      end
+
+      local_queue.get_next_by_in_generic_queue(nodable_attribute, attribute_value)
+    end
+
     def get_next_in_queue
       get_next_node_in_queue&.nodable
     end
@@ -37,21 +54,9 @@ module QueueIt::Queable
 
     def formatted_queue(nodable_attribute)
       return if local_queue.empty?
+      return [local_queue.head_node.nodable.send(nodable_attribute)] if local_queue.one_node?
 
-      if local_queue.one_node?
-        [local_queue.head_node.nodable.send(nodable_attribute)]
-      elsif local_queue.two_nodes?
-        [local_queue.head_node.nodable.send(nodable_attribute),
-          local_queue.tail_node.nodable.send(nodable_attribute)]
-      else
-        current_node = local_queue.head_node
-        array = []
-        while !current_node.nil?
-          array.push(current_node.nodable.send(nodable_attribute))
-          current_node = current_node.child_node
-        end
-        array
-      end
+      formatted_generic_queue(nodable_attribute)
     end
 
     def delete_queue_nodes
@@ -69,11 +74,11 @@ module QueueIt::Queable
       end
     end
 
-    private
-
     def local_queue
       @local_queue ||= find_or_create_queue!
     end
+
+    private
 
     def remove_node(node)
       node.reload
@@ -85,5 +90,15 @@ module QueueIt::Queable
       child_node&.update!(parent_node: previous_node, kind: new_child_node_kind)
       previous_node&.update!(kind: node_kind) if node_kind == 'tail' && previous_node&.any?
     end
+  end
+
+  def formatted_generic_queue(nodable_attribute)
+    current_node = local_queue.head_node
+    array = []
+    while !current_node.nil?
+      array.push(current_node.nodable.send(nodable_attribute))
+      current_node = current_node.child_node
+    end
+    array
   end
 end

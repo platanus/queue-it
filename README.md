@@ -78,7 +78,7 @@ task.push_to_queue(User.create!(name: 'Raimundo'))
 ```
 Now with the `get_next_in_queue` method we'll the obtain user with name `'Raimundo'` and the order of the queue will be updated.
 ```ruby
-nodable = task.get_next_in_queue
+nodable = task.get_next_node_in_queue
 nodable.name == 'Raimundo' # true
 # the new order of the queue will be: [Leandro's node, Gabriel's node, Raimundo's node]
 ```
@@ -88,6 +88,32 @@ node = task.get_next_in_queue
 node.nodable.name == 'Raimundo' # true
 # the new order of the queue will be: [Leandro's node, Gabriel's node, Raimundo's node]
 ```
+
+#### Get nodable/node by custom attribute of the queue
+With the methods presented above you could only get the first nodable/node and for some cases this isn't enough. To obtain the first nodable/node that has some attribute value we've implemented the methods `get_next_in_queue_by` and `get_next_node_in_queue_by`. Both methods receive first a `nodable_attribute` and second the nodable `attribute_value` so the methods return the first nodable/node that has the attribute with the searching value.
+Let's use the same queue that we used before:
+
+``` ruby
+task = Task.create!(name: 'Example')
+task.push_to_queue(User.create!(name: 'Gabriel'))
+task.push_to_queue(User.create!(name: 'Leandro'))
+task.push_to_queue(User.create!(name: 'Raimundo'))
+# Note that the order of the queue is now: [Raimundo's node, Leandro's node, Gabriel's node]
+```
+We could now search for the second user using the attribute name 'name' and the attribute value 'Leandro' like this.
+``` ruby
+nodable = task.get_next_in_queue_by('name', 'Leandro')
+nodable.name == 'Leandro'  # true
+# the new order of the queue will now be: [Raimundo's node, Gabriel's node, Leandro's node]
+```
+Now if we would of used `get_next_node_in_queue_by` method intead of `get_next_in_queue_by` we would obtain the node containing the user with name `'Leandro'` as a nodable and the queue would of been updated aswell.
+``` ruby
+node = task.get_next_node_in_queue_by('name', 'Leandro')
+node.nodable.name == 'Leandro'  # true
+# the new order of the queue will now be: [Raimundo's node, Gabriel's node, Leandro's node]
+```
+**Note** that the methods return the first nodable/node that matches the attribute value. In case of a queue that has, for example, users with the same value you should prefer searching for another attribute like the `'id'`.
+
 
 #### Formatted Queue
 We included a method to obtain the queue formatted by an attribute/method. Note that the nodables will need to have the attribute or an implementation of the method called.

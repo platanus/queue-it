@@ -1,5 +1,6 @@
 require 'rails_helper'
 
+# rubocop:disable Metrics/ModuleLength
 module QueueIt
   RSpec.describe Queue, type: :model do
     it "has a valid factory" do
@@ -31,6 +32,33 @@ module QueueIt
       end
     end
 
+    describe '#get_next_by_with_queue_length_two' do
+      let(:queue) { create(:queue, :with_two_nodes) }
+      let!(:original_head) { queue.head_node }
+      let!(:original_tail) { queue.tail_node }
+
+      context 'when searching for tail node' do
+        it "expects to return original_tail and to not change nodables kind's" do
+          expect(
+            queue.get_next_by_with_queue_length_two('id', original_tail.nodable_id)
+          ).to eq(original_tail)
+          expect(queue.nodes.find_by(kind: :head)).to eq(original_head)
+          expect(queue.nodes.find_by(kind: :tail)).to eq(original_tail)
+        end
+      end
+
+      context 'when searching for head node' do
+        it "expects to return original_head node and to change node 'head' for 'tail' and
+            reverse" do
+          expect(
+            queue.get_next_by_with_queue_length_two('id', original_head.nodable.id)
+          ).to eq(original_head)
+          expect(queue.nodes.find_by(kind: :head)).to eq(original_tail)
+          expect(queue.nodes.find_by(kind: :tail)).to eq(original_head)
+        end
+      end
+    end
+
     describe '#get_next_in_queue_generic' do
       let(:queue) { create(:queue, :with_three_nodes) }
       let!(:original_head) { queue.head_node }
@@ -56,6 +84,46 @@ module QueueIt
         queue.get_next_in_queue_generic
         expect(queue.head_node.child_node).to eq(original_tail)
         expect(original_tail.reload.child_node).to eq(original_head.reload)
+      end
+    end
+
+    describe '#get_next_by_in_generic_queue' do
+      let(:queue) { create(:queue, :with_three_nodes) }
+      let!(:original_head) { queue.head_node }
+      let!(:original_any) { queue.head_node.child_node }
+      let!(:original_tail) { queue.tail_node }
+
+      context 'when searching for the head_node' do
+        it "expects to get orginal_head and to correctly move the queue" do
+          expect(
+            queue.get_next_by_in_generic_queue('id', original_head.nodable_id)
+          ).to eq(original_head)
+          expect(queue.nodes.find_by(kind: :head)).to eq(original_any)
+          expect(queue.nodes.find_by(kind: :any)).to eq(original_tail)
+          expect(queue.nodes.find_by(kind: :tail)).to eq(original_head)
+        end
+      end
+
+      context 'when searching for the middle node' do
+        it "expects to get original_any and to correctly move the queue" do
+          expect(
+            queue.get_next_by_in_generic_queue('id', original_any.nodable_id)
+          ).to eq(original_any)
+          expect(queue.nodes.find_by(kind: :head)).to eq(original_head)
+          expect(queue.nodes.find_by(kind: :any)).to eq(original_tail)
+          expect(queue.nodes.find_by(kind: :tail)).to eq(original_any)
+        end
+      end
+
+      context 'when searching for the tail node' do
+        it "expects to get original_tail and to correctly move the queue" do
+          expect(
+            queue.get_next_by_in_generic_queue('id', original_tail.nodable.id)
+          ).to eq(original_tail)
+          expect(queue.nodes.find_by(kind: :head)).to eq(original_head)
+          expect(queue.nodes.find_by(kind: :any)).to eq(original_any)
+          expect(queue.nodes.find_by(kind: :tail)).to eq(original_tail)
+        end
       end
     end
 
@@ -114,3 +182,4 @@ module QueueIt
     end
   end
 end
+# rubocop:enable Metrics/ModuleLength

@@ -120,7 +120,8 @@ describe 'Concerns::Queable' do
         task.push_to_queue(second_nodable, in_head)
       end
 
-      it "expects to return second_nodable node and to change node 'head' for 'tail' and reverse" do
+      it "expects to return second_nodable node and to change node 'head' for 'tail'"\
+          "and reverse" do
         expect(task.get_next_node_in_queue.nodable).to eq(second_nodable)
         expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(first_nodable)
         expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(second_nodable)
@@ -144,6 +145,151 @@ describe 'Concerns::Queable' do
         expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(second_nodable)
         expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(first_nodable)
         expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(third_nodable)
+      end
+    end
+  end
+
+  describe '#get_next_node_in_queue_by' do
+    context "when queue dosen't exist or is empty" do
+      it { expect(task.get_next_node_in_queue_by('id', 1)).to be(nil) }
+    end
+
+    context 'when queue has one node' do
+      let(:nodable) { create(:user) }
+
+      before { task.push_to_queue(nodable) }
+
+      it "expects to find head_node and do not change it's kind value" do
+        expect(task.get_next_node_in_queue_by('id', nodable.id).nodable).to eq(nodable)
+        expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(nodable)
+      end
+    end
+
+    context 'when queue has two nodes' do
+      let!(:first_nodable) { create(:user) }
+      let!(:second_nodable) { create(:user) }
+      let(:in_head) { true }
+
+      before do
+        task.push_to_queue(first_nodable)
+        task.push_to_queue(second_nodable, in_head)
+      end
+
+      context 'when searching for tail node' do
+        it "expects to return first_nodable and to not change nodables kind's" do
+          expect(
+            task.get_next_node_in_queue_by('id', first_nodable.id).nodable
+          ).to eq(first_nodable)
+          expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(first_nodable)
+          expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(second_nodable)
+        end
+      end
+
+      context 'when searching for head node' do
+        it "expects to return second_nodable node and to change node 'head' for 'tail'"\
+            "and reverse" do
+          expect(
+            task.get_next_node_in_queue_by('id', second_nodable.id).nodable
+          ).to eq(second_nodable)
+          expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(first_nodable)
+          expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(second_nodable)
+        end
+      end
+    end
+
+    context 'when queue is generic (has more than two nodes)' do
+      let(:first_nodable) { create(:user) }
+      let(:second_nodable) { create(:user) }
+      let(:third_nodable) { create(:user) }
+      let(:in_head) { true }
+
+      before do
+        task.push_to_queue(first_nodable)
+        task.push_to_queue(second_nodable, in_head)
+        task.push_to_queue(third_nodable, in_head)
+      end
+
+      context 'when searching for the head_node' do
+        it "expects to get third nodable and to correctly move the queue" do
+          expect(
+            task.get_next_node_in_queue_by('id', third_nodable.id).nodable
+          ).to eq(third_nodable)
+          expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(second_nodable)
+          expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(first_nodable)
+          expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(third_nodable)
+        end
+      end
+
+      context 'when searching for the middle node' do
+        it "expects to get second nodable and to correctly move the queue" do
+          expect(
+            task.get_next_node_in_queue_by('id', second_nodable.id).nodable
+          ).to eq(second_nodable)
+          expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(third_nodable)
+          expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(first_nodable)
+          expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(second_nodable)
+        end
+      end
+
+      context 'when searching for the tail node' do
+        it "expects to get first nodable and to correctly move the queue" do
+          expect(
+            task.get_next_node_in_queue_by('id', first_nodable.id).nodable
+          ).to eq(first_nodable)
+          expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(third_nodable)
+          expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(second_nodable)
+          expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(first_nodable)
+        end
+      end
+
+      context 'when searching for a nodable that is not present' do
+        it 'expects to return nil' do
+          expect(
+            task.get_next_node_in_queue_by('id', first_nodable.id - 1)
+          ).to eq(nil)
+        end
+      end
+    end
+
+    context 'when queue is generic and has two nodes with the same nodable' do
+      let(:first_nodable) { create(:user) }
+      let(:second_nodable) { create(:user) }
+      let(:in_head) { true }
+
+      before do
+        task.push_to_queue(first_nodable)
+        task.push_to_queue(second_nodable, in_head)
+        task.push_to_queue(first_nodable, in_head)
+      end
+
+      context 'when searching for the the first_nodable' do
+        it "expects to get first nodable and to correctly move the queue" do
+          expect(
+            task.get_next_node_in_queue_by('id', first_nodable.id).nodable
+          ).to eq(first_nodable)
+          expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(second_nodable)
+          expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(first_nodable)
+          expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(first_nodable)
+        end
+      end
+    end
+
+    context 'when queue is generic with more than 20 nodes' do
+      let(:nodables) { create_list(:user, 20) }
+      let(:selected_nodable) { nodables[10] }
+      let(:in_head) { true }
+
+      before do
+        nodables.each { |nodable| task.push_to_queue(nodable, in_head) }
+      end
+
+      context 'when seraching for an specific node' do
+        it 'expects to retrieve correct nodable and to move it to the tail' do
+          expect(
+            task.get_next_node_in_queue_by('id', selected_nodable.id).nodable
+          ).to eq(selected_nodable)
+          expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(selected_nodable)
+        end
       end
     end
   end
@@ -331,7 +477,9 @@ describe 'Concerns::Queable' do
       end
 
       it "expects to delete third_nodable's node and to have second_nodable as head" do
-        expect { task.remove_from_queue(third_nodable) }.to change { task.queue.size }.from(3).to(2)
+        expect do
+          task.remove_from_queue(third_nodable)
+        end.to change { task.queue.size }.from(3).to(2)
         expect(task.queue.head_node.nodable).to eq(second_nodable)
       end
 
@@ -406,7 +554,7 @@ describe 'Concerns::Queable' do
       end
     end
 
-    context 'when queue has lenght 5', focus: true do
+    context 'when queue has lenght 5' do
       let(:first_nodable) { create(:user) }
       let(:second_nodable) { create(:user) }
       let(:third_nodable) { create(:user) }

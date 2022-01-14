@@ -1,6 +1,14 @@
 describe 'Concerns::Queable' do
   let(:task) { create(:task) }
 
+  RSpec.shared_examples 'nodes_connected' do
+    it 'expects to keep original connected nodes length
+        (keep the structure after every action)' do
+      task.send(action_callable, *action_arguments)
+      expect(task.connected_nodes).to eq(task.queue.nodes.size)
+    end
+  end
+
   describe '#find_or_create_queue!' do
     before do
       task.find_or_create_queue!
@@ -95,6 +103,9 @@ describe 'Concerns::Queable' do
   end
 
   describe '#get_next_node_in_queue' do
+    let(:action_callable) { 'get_next_node_in_queue' }
+    let(:action_arguments) { [] }
+
     context "when queue dosen't exist or is empty" do
       it { expect(task.get_next_node_in_queue).to be(nil) }
     end
@@ -108,6 +119,8 @@ describe 'Concerns::Queable' do
         expect(task.get_next_node_in_queue.nodable).to eq(nodable)
         expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(nodable)
       end
+
+      include_examples 'nodes_connected'
     end
 
     context 'when queue has two nodes' do
@@ -126,6 +139,8 @@ describe 'Concerns::Queable' do
         expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(first_nodable)
         expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(second_nodable)
       end
+
+      include_examples 'nodes_connected'
     end
 
     context 'when queue is generic (has more than two nodes)' do
@@ -146,16 +161,32 @@ describe 'Concerns::Queable' do
         expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(first_nodable)
         expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(third_nodable)
       end
+
+      include_examples 'nodes_connected'
     end
   end
 
   describe '#get_next_node_in_queue_by' do
+    let!(:unused_nodable) { create(:user) }
+    let(:action_callable) { 'get_next_node_in_queue_by' }
+
+    RSpec.shared_examples 'missing_nodable' do
+      context 'when searching for a nodable that is not present' do
+        it 'expects to return nil' do
+          expect(
+            task.get_next_node_in_queue_by('id', unused_nodable.id)
+          ).to eq(nil)
+        end
+      end
+    end
+
     context "when queue dosen't exist or is empty" do
-      it { expect(task.get_next_node_in_queue_by('id', 1)).to be(nil) }
+      include_examples 'missing_nodable'
     end
 
     context 'when queue has one node' do
       let(:nodable) { create(:user) }
+      let(:action_arguments) { ['id', nodable.id] }
 
       before { task.push_to_queue(nodable) }
 
@@ -163,6 +194,9 @@ describe 'Concerns::Queable' do
         expect(task.get_next_node_in_queue_by('id', nodable.id).nodable).to eq(nodable)
         expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(nodable)
       end
+
+      include_examples 'missing_nodable'
+      include_examples 'nodes_connected'
     end
 
     context 'when queue has two nodes' do
@@ -176,6 +210,8 @@ describe 'Concerns::Queable' do
       end
 
       context 'when searching for tail node' do
+        let(:action_arguments) { ['id', first_nodable.id] }
+
         it "expects to return first_nodable and to not change nodables kind's" do
           expect(
             task.get_next_node_in_queue_by('id', first_nodable.id).nodable
@@ -183,9 +219,13 @@ describe 'Concerns::Queable' do
           expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(first_nodable)
           expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(second_nodable)
         end
+
+        include_examples 'nodes_connected'
       end
 
       context 'when searching for head node' do
+        let(:action_arguments) { ['id', second_nodable.id] }
+
         it "expects to return second_nodable node and to change node 'head' for 'tail'"\
             "and reverse" do
           expect(
@@ -194,7 +234,11 @@ describe 'Concerns::Queable' do
           expect(task.queue.nodes.find_by(kind: :head).nodable).to eq(first_nodable)
           expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(second_nodable)
         end
+
+        include_examples 'nodes_connected'
       end
+
+      include_examples 'missing_nodable'
     end
 
     context 'when queue is generic (has more than two nodes)' do
@@ -210,6 +254,8 @@ describe 'Concerns::Queable' do
       end
 
       context 'when searching for the head_node' do
+        let(:action_arguments) { ['id', third_nodable.id] }
+
         it "expects to get third nodable and to correctly move the queue" do
           expect(
             task.get_next_node_in_queue_by('id', third_nodable.id).nodable
@@ -218,9 +264,13 @@ describe 'Concerns::Queable' do
           expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(first_nodable)
           expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(third_nodable)
         end
+
+        include_examples 'nodes_connected'
       end
 
       context 'when searching for the middle node' do
+        let(:action_arguments) { ['id', second_nodable.id] }
+
         it "expects to get second nodable and to correctly move the queue" do
           expect(
             task.get_next_node_in_queue_by('id', second_nodable.id).nodable
@@ -229,9 +279,13 @@ describe 'Concerns::Queable' do
           expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(first_nodable)
           expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(second_nodable)
         end
+
+        include_examples 'nodes_connected'
       end
 
       context 'when searching for the tail node' do
+        let(:action_arguments) { ['id', first_nodable.id] }
+
         it "expects to get first nodable and to correctly move the queue" do
           expect(
             task.get_next_node_in_queue_by('id', first_nodable.id).nodable
@@ -240,15 +294,38 @@ describe 'Concerns::Queable' do
           expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(second_nodable)
           expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(first_nodable)
         end
+
+        include_examples 'nodes_connected'
       end
 
-      context 'when searching for a nodable that is not present' do
-        it 'expects to return nil' do
-          expect(
-            task.get_next_node_in_queue_by('id', first_nodable.id - 1)
-          ).to eq(nil)
-        end
+      include_examples 'missing_nodable'
+    end
+
+    context 'when queue is generic and searching for second nodable in queue with 4 nodes' do
+      let(:first_nodable) { create(:user) }
+      let(:second_nodable) { create(:user) }
+      let(:third_nodable) { create(:user) }
+      let(:forth_nodable) { create(:user) }
+      let(:in_head) { true }
+      let(:action_arguments) { ['id', third_nodable.id] }
+
+      before do
+        task.push_to_queue(first_nodable)
+        task.push_to_queue(second_nodable, in_head)
+        task.push_to_queue(third_nodable, in_head)
+        task.push_to_queue(forth_nodable, in_head)
       end
+
+      it 'expects to move the order of the queue properly' do
+        task.get_next_node_in_queue_by('id', third_nodable.id).nodable
+        expect(task.queue.head_node.nodable).to eq(forth_nodable)
+        expect(task.queue.head_node.child_node.nodable).to eq(second_nodable)
+        expect(task.queue.tail_node.parent_node.nodable).to eq(first_nodable)
+        expect(task.queue.tail_node.nodable).to eq(third_nodable)
+      end
+
+      include_examples 'nodes_connected'
+      include_examples 'missing_nodable'
     end
 
     context 'when queue is generic and has two nodes with the same nodable' do
@@ -263,6 +340,8 @@ describe 'Concerns::Queable' do
       end
 
       context 'when searching for the the first_nodable' do
+        let(:action_arguments) { ['id', first_nodable.id] }
+
         it "expects to get first nodable and to correctly move the queue" do
           expect(
             task.get_next_node_in_queue_by('id', first_nodable.id).nodable
@@ -271,6 +350,8 @@ describe 'Concerns::Queable' do
           expect(task.queue.nodes.find_by(kind: :any).nodable).to eq(first_nodable)
           expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(first_nodable)
         end
+
+        include_examples 'nodes_connected'
       end
     end
 
@@ -284,12 +365,16 @@ describe 'Concerns::Queable' do
       end
 
       context 'when seraching for an specific node' do
+        let(:action_arguments) { ['id', selected_nodable.id] }
+
         it 'expects to retrieve correct nodable and to move it to the tail' do
           expect(
             task.get_next_node_in_queue_by('id', selected_nodable.id).nodable
           ).to eq(selected_nodable)
           expect(task.queue.nodes.find_by(kind: :tail).nodable).to eq(selected_nodable)
         end
+
+        include_examples 'nodes_connected'
       end
     end
   end
@@ -352,7 +437,7 @@ describe 'Concerns::Queable' do
     context 'when queue is empty' do
       before { task.find_or_create_queue! }
 
-      it { expect { task.delete_queue_nodes }.not_to change { task.queue.size } }
+      it { expect { task.delete_queue_nodes }.not_to (change { task.queue.size }) }
     end
 
     context 'when queue is with nodes' do

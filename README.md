@@ -128,6 +128,17 @@ response = task.formatted_queue('name')
 response == ['Raimundo', 'Leandro', 'Gabriel'] # true
 ```
 
+### Obtain the connected nodes of the queue
+To obtain the nodes that are connected we have implemented a method `connected_nodes`. This method is used for testing but it could be used for some other reason.
+```ruby
+# creation of the queue
+task = Task.create!(name: 'Example')
+task.push_to_queue(User.create!(name: 'Gabriel'))
+task.push_to_queue(User.create!(name: 'Leandro'))
+task.push_to_queue(User.create!(name: 'Raimundo'))
+task.connected_nodes == 3 # true
+```
+
 #### Delete all the nodes of the queue
 With the method `delete_queue_nodes` you'll be able to clean the queue.
 ```ruby

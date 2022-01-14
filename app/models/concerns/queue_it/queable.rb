@@ -26,9 +26,8 @@ module QueueIt::Queable
     def get_next_node_in_queue_by(nodable_attribute, attribute_value)
       return if local_queue.empty?
 
-      if local_queue.one_node? &&
-          local_queue.head_node.nodable.send(nodable_attribute) == attribute_value
-        return local_queue.head_node
+      if local_queue.one_node?
+        return local_queue.get_next_by_with_queue_length_one(nodable_attribute, attribute_value)
       elsif local_queue.two_nodes?
         return local_queue.get_next_by_with_queue_length_two(nodable_attribute, attribute_value)
       end
@@ -72,6 +71,16 @@ module QueueIt::Queable
           remove_node(node)
         end
       end
+    end
+
+    def connected_nodes
+      counter = 0
+      current_node = local_queue.head_node
+      while !current_node.nil?
+        counter += 1
+        current_node = current_node.child_node
+      end
+      counter
     end
 
     def local_queue

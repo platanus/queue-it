@@ -27,10 +27,14 @@ module QueueIt
       size == 2
     end
 
+    def get_next_by_with_queue_length_one(nodable_attribute, attribute_value)
+      head_node if head_node.nodable.send(nodable_attribute) == attribute_value
+    end
+
     def get_next_by_with_queue_length_two(nodable_attribute, attribute_value)
       if head_node.nodable.send(nodable_attribute) == attribute_value
         get_next_in_queue_with_length_two
-      else
+      elsif tail_node.nodable.send(nodable_attribute) == attribute_value
         tail_node
       end
     end
@@ -119,12 +123,13 @@ module QueueIt
     def move_current_node(current_node)
       ActiveRecord::Base.transaction do
         lock!
+        old_parent_node = current_node.parent_node.lock!
         old_current_node = current_node.lock!
-        old_next_node = old_current_node.child_node.lock!
+        old_next_node = current_node.child_node.lock!
         old_tail_node = tail_node.lock!
         old_tail_node.update!(kind: :any)
         old_current_node.update!(kind: :tail, parent_node: old_tail_node)
-        old_next_node.update!(parent_node: old_current_node.parent_node)
+        old_next_node.update!(parent_node: old_parent_node)
         old_current_node
       end
     end

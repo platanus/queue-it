@@ -11,7 +11,6 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema.define(version: 2021_08_06_144346) do
-
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -23,7 +22,7 @@ ActiveRecord::Schema.define(version: 2021_08_06_144346) do
     t.integer "kind"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.index ["nodable_type", "nodable_id"], name: "index_queue_it_nodes_on_nodable"
+    t.index %w(nodable_type nodable_id), name: "index_queue_it_nodes_on_nodable"
     t.index ["parent_node_id"], name: "index_queue_it_nodes_on_parent_node_id"
     t.index ["queue_id"], name: "index_queue_it_nodes_on_queue_id"
   end
@@ -34,7 +33,7 @@ ActiveRecord::Schema.define(version: 2021_08_06_144346) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.bigint "count_of_nodes", default: 0
-    t.index ["queable_type", "queable_id"], name: "index_queue_it_queues_on_queable"
+    t.index %w(queable_type queable_id), name: "index_queue_it_queues_on_queable"
   end
 
   create_table "tasks", force: :cascade do |t|
@@ -48,5 +47,4 @@ ActiveRecord::Schema.define(version: 2021_08_06_144346) do
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
   end
-
 end

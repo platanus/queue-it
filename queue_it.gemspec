@@ -1,18 +1,21 @@
-$:.push File.expand_path("../lib", __FILE__)
+$:.push File.expand_path('lib', __dir__)
 
 # Maintain your gem"s version:
 require "queue_it/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name          = "rails-queue-it"
-  s.version       = QueueIt::VERSION
-  s.authors       = ["Platanus", "Gabriel Lyon"]
-  s.email         = ["rubygems@platan.us", "gabriel@platan.us"]
-  s.homepage      = "https://github.com/platanus/queue-it"
-  s.summary       = "Queue's for recurrent processes that need someone (or something) responsable."
-  s.description   = "This gem allows you to queue objects through a simple to use interface."
-  s.license       = "MIT"
+  s.name                  = "rails-queue-it"
+  s.version               = QueueIt::VERSION
+  s.authors               = ["Platanus", "Gabriel Lyon"]
+  s.email                 = ["rubygems@platan.us", "gabriel@platan.us"]
+  s.homepage              = "https://github.com/platanus/queue-it"
+  s.summary               = "Queue's for recurrent processes that need someone"\
+                            "(or something) responsable."
+  s.description           = "This gem allows you to queue objects through a"\
+                            "simple to use interface."
+  s.license               = "MIT"
+  s.required_ruby_version = '>= 2.7.0'
 
   s.files = `git ls-files`.split($/).reject { |fn| fn.start_with? "spec" }
   s.bindir = "exe"
